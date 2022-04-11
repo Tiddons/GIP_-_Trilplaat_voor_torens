@@ -1,5 +1,4 @@
 // configuration of variables
-int PIN_ANALOGSCHAKELAAR = A0;
 int HALLSENSOR = 2;
 int PWMA = 3;
 int INB = 4;
@@ -18,17 +17,16 @@ String myString;
 void setup()
 {
   pinMode(PWMA, OUTPUT);
-  pinMode(PIN_ANALOGSCHAKELAAR, INPUT);
   pinMode(INB, OUTPUT);
   pinMode(HALLSENSOR, INPUT);
   attachInterrupt(digitalPinToInterrupt(HALLSENSOR), calculateFrequenty, FALLING);
+  digitalWrite(INB, HIGH); //Needs to be high to get motor moving. Make sure INA is shorted to ground. For diagram, see: https://i.imgur.com/AAdZkGg.png
   Serial.begin(9600);
   Serial.println();
   delay(2000);
-  Serial.println("--GIP V0.1-- code by Tiddo Nees - 6IW");
+  Serial.println("--Trilplaat V0.1-- code by Tiddo Nees - 6IW");
   delay(2000);
-  Serial.println();
-  Serial.println();
+  Serial.println('\n');
   boolean VoltCheck = false;
   while (VoltCheck == false)
   {
@@ -36,17 +34,14 @@ void setup()
     {
       Serial.read();
     }
-    Serial.println("How many volts is the source input?");
-    Serial.println();
+    Serial.println("How many volts is the source input?\n");
     while (Serial.available() == 0)
     {
     }
     String StringInput = Serial.readString();
-    Serial.println();
     INPUT_VOLTAGE = StringInput.toInt();
     String volts = String(INPUT_VOLTAGE, 1);
-    Serial.println("Input is " + volts + "V");
-    Serial.println();
+    Serial.println("\nInput is " + volts + "V\n");
     delay(200);
     if (INPUT_VOLTAGE > 0.0)
     {
@@ -68,9 +63,7 @@ void loop()
       {
         Serial.read();
       }
-      Serial.println("What mode do you want to use?");
-      Serial.println();
-      Serial.println("[1] Manual or [2] Testing mode");
+      Serial.println("What mode do you want to use?\n\n[1] Manual or [2] Testing mode");
       while (Serial.available() == 0)
       {
       }
@@ -98,9 +91,9 @@ void loop()
 
   else if (state == 1)
   {                      // _________________________ Manual state
-    boolean ManualState; // True is serial, false is analog
+    boolean ManualState; // True is Voltage, false is frequency based control
     boolean ManualModeCheck = false;
-    while (ManualModeCheck == false)
+    while (ManualModeCheck == false) //Decides wether to use serial or analog input
     {
       Serial.println();
       delay(500);
@@ -110,9 +103,7 @@ void loop()
       {
         Serial.read();
       }
-      Serial.println("What manual mode do you want to use?");
-      Serial.println();
-      Serial.println("[1] Serial controlled or [2] Analog controlled");
+      Serial.println("How do you want to control the speed?\n\n[1] Voltage based or [2] Frequency based");
       while (Serial.available() == 0)
       {
       }
@@ -135,7 +126,7 @@ void loop()
       }
     }
     if (ManualState == true)
-    { // serial manual mode
+    { // Voltage controlled mode
       Serial.println();
       delay(1000);
       Serial.println("*You can stop the mode by sending any text*");
@@ -145,7 +136,7 @@ void loop()
       boolean FirstcharCheck = false;
       byte ndx = 0;
       int schakelaarEersteToestand = 0;
-      float percent;
+      float percent = 0;
       while (manualcheck == false)
       {
         memset(receivedChars, 0, sizeof(receivedChars));
@@ -170,10 +161,10 @@ void loop()
             newData = true;
           }
         }
-        if (receivedChars[0] != 0 && (receivedChars[0] >= '1' || receivedChars[0] <= '9'))
+        if ((receivedChars[0] >= '0' && receivedChars[0] <= '9'))
         {
           String percentString = String(receivedChars);
-          int tempPercent = percentString.toInt();
+          float tempPercent = percentString.toFloat();
           if (tempPercent <= 100.0)
           {
             percent = tempPercent;
@@ -185,7 +176,7 @@ void loop()
         String percentS = String(percent, 2); // using a float and the decimal places
         String voltageS = String(voltage, 2);
         Serial.println("Current output: " + percentS + "%  (" + voltageS + "V)");
-        if (receivedChars[0] != 0 && (receivedChars[0] < '1' || receivedChars[0] > '9'))
+        if (receivedChars[0] != '\0' && (receivedChars[0] < '0' || receivedChars[0] > '9'))
         {
           manualcheck = true;
           state = 0;
@@ -194,32 +185,8 @@ void loop()
       }
     }
     else if (ManualState == false)
-    { // analog manual mode
-      Serial.println();
-      delay(1000);
-      Serial.println("*You can stop the mode by sending any text*");
-      delay(2500);
-      Serial.println();
-      boolean manualcheck = false;
-      boolean FirstcharCheck = false;
-      while (manualcheck == false)
-      {
-        Serial.flush();
-        int charInput = Serial.read();
-        int schakelaarEersteToestand = analogRead(PIN_ANALOGSCHAKELAAR);
-        analogWrite(PWMA, schakelaarEersteToestand / 4);
-        float percent = (schakelaarEersteToestand / 1023.0) * 100.0;
-        float voltage = (INPUT_VOLTAGE * ((float)percent / 100.0));
-        String percentS = String(percent, 2); // using a float and the decimal places
-        String voltageS = String(voltage, 2);
-        Serial.println("Current output: " + percentS + "%  (" + voltageS + "V)");
-        if (charInput > 10)
-        {
-          manualcheck = true;
-          state = 0;
-          Serial.println();
-        }
-      }
+    { // Frequency controlled mode
+      //still need to make this 
     }
   }
   else if (state == 2)
@@ -233,15 +200,13 @@ void loop()
       {
         Serial.read();
       }
-      Serial.println("How many tests do you want to perform?");
-      Serial.println();
+      Serial.println("How many tests do you want to perform?\n");
       while (Serial.available() == 0)
       {
       }
       String StringInput = Serial.readString();
-      Serial.println();
+      Serial.println('\n');
       PRECISION = StringInput.toInt();
-      Serial.println();
       delay(500);
       if (PRECISION > 0)
       {
@@ -256,15 +221,13 @@ void loop()
       {
         Serial.read();
       }
-      Serial.println("What should the interval between tests be? [ms]");
-      Serial.println();
+      Serial.println("What should the interval between tests be? [ms]\n");
       while (Serial.available() == 0)
       {
       }
       String StringInput = Serial.readString();
-      Serial.println();
+      Serial.println('\n');
       TEST_DELAY = StringInput.toInt();
-      Serial.println();
       delay(500);
       if (TEST_DELAY > 0)
       {
@@ -274,12 +237,10 @@ void loop()
     Serial.println();
     String amountOfTests = String((int)PRECISION);
     delay(2000);
-    Serial.println("Precision has been succesfully set to " + amountOfTests + " tests");
-    Serial.println();
+    Serial.println("Precision has been succesfully set to " + amountOfTests + " tests\n");
     delay(1000);
     String amountOfMinutes = String((PRECISION * TEST_DELAY) / 60000, 2);
-    Serial.println("This will approximatly take: " + amountOfMinutes + " minutes");
-    Serial.println();
+    Serial.println("This will approximatly take: " + amountOfMinutes + " minutes\n");
     delay(1000);
     for (int i = 10; i > 0; i--)
     {
@@ -292,9 +253,7 @@ void loop()
       {
         i = 0;
         PRECISION = 0;
-        Serial.println();
-        Serial.println("---Test aborted---");
-        Serial.println();
+        Serial.println("\n---Test aborted---\n");
       }
       if (charInput == 83)
       {
@@ -302,8 +261,7 @@ void loop()
       }
       delay(1000);
     }
-    Serial.println();
-    Serial.println();
+    Serial.println('\n');
     for (float i = PRECISION; i > 0; i--)
     {
       float currentOutput = ((1023.0 / PRECISION) * i) / 4.011764;
@@ -317,10 +275,7 @@ void loop()
       Serial.println("Currently testing with output: [" + percentS + "%]  (" + voltageS + "V)  " + currentTest + "/" + totalTests);
       delay(TEST_DELAY);
     }
-    Serial.println();
-    Serial.println("---------------------------------------------------------------------");
-    Serial.println();
-    Serial.println("_TESTS DONE_");
+    Serial.println("\n---------------------------------------------------------------------\n_TESTS DONE_\n");
     delay(200);
     boolean TestAgainCheck = false;
     while (TestAgainCheck == false)
@@ -330,9 +285,7 @@ void loop()
       {
         Serial.read();
       }
-      Serial.println();
-      Serial.println("Do you want to test again?");
-      Serial.println("[1] Yes or [2] No");
+      Serial.println("\nDo you want to test again?\n[1] Yes or [2] No");
       while (Serial.available() == 0)
       {
       }
@@ -359,8 +312,7 @@ void loop()
           Serial.println();
           if (StringInput2 == 50)
           {
-            Serial.println();
-            Serial.println("Goodbye.");
+            Serial.println("\nGoodbye.");
             Serial.end();
             while (true)
             {
@@ -369,8 +321,7 @@ void loop()
           }
           else if (StringInput2 == 49)
           {
-            Serial.println();
-            Serial.println("_MANUAL MODE ENABLED_");
+            Serial.println("\n_MANUAL MODE ENABLED_");
             StringInput = 0;
             state = 1;
             switchMode = true;
