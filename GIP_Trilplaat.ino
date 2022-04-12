@@ -20,7 +20,7 @@ void setup()
   pinMode(INB, OUTPUT);
   pinMode(HALLSENSOR, INPUT);
   attachInterrupt(digitalPinToInterrupt(HALLSENSOR), calculateFrequenty, FALLING);
-  digitalWrite(INB, HIGH); //Needs to be high to get motor moving. Make sure INA is shorted to ground. For diagram, see: https://i.imgur.com/AAdZkGg.png
+  digitalWrite(INB, HIGH); // Needs to be high to get motor moving. Make sure INA is shorted to ground. For diagram, see: https://i.imgur.com/AAdZkGg.png
   Serial.begin(9600);
   Serial.println();
   delay(2000);
@@ -53,8 +53,8 @@ void setup()
 void loop()
 {
 
-  if (state == 0)
-  { // __________________________________ Menu
+  if (state == 0) // __________________________________ Menu
+  {
     boolean modeCheck = false;
     while (modeCheck == false)
     {
@@ -89,11 +89,11 @@ void loop()
     }
   }
 
-  else if (state == 1)
-  {                      // _________________________ Manual state
+  else if (state == 1) // _________________________ Manual state
+  {                      
     boolean ManualState; // True is Voltage, false is frequency based control
     boolean ManualModeCheck = false;
-    while (ManualModeCheck == false) //Decides wether to use serial or analog input
+    while (ManualModeCheck == false) // Decides wether to use serial or analog input
     {
       Serial.println();
       delay(500);
@@ -125,8 +125,8 @@ void loop()
         delay(200);
       }
     }
-    if (ManualState == true)
-    { // Voltage controlled mode
+    if (ManualState == true) // Voltage controlled mode
+    { 
       Serial.println();
       delay(1000);
       Serial.println("*You can stop the mode by sending any text*");
@@ -176,7 +176,7 @@ void loop()
         String percentS = String(percent, 2); // using a float and the decimal places
         String voltageS = String(voltage, 2);
         String frequencyS = String(currentFrequency, 2);
-        Serial.println("Current output: " + percentS + "%  (" + voltageS + "V) (" + currentFrequency + "Hz)" );
+        Serial.println("Current output: " + percentS + "%  (" + voltageS + "V) (" + currentFrequency + "Hz)");
         if (receivedChars[0] != '\0' && (receivedChars[0] < '0' || receivedChars[0] > '9'))
         {
           manualcheck = true;
@@ -185,9 +185,67 @@ void loop()
         }
       }
     }
-    else if (ManualState == false) //TODO 
-    { // Frequency controlled mode
-      //still need to make this 
+    else if (ManualState == false) // Frequency controlled mode // TODO
+    {
+      Serial.println();
+      delay(1000);
+      Serial.println("*You can stop the mode by sending any text*");
+      delay(2500);
+      Serial.println();
+      boolean manualcheck = false;
+      boolean FirstcharCheck = false;
+      byte ndx = 0;
+      String frequencyString;
+      float tempFrequency;
+      float output = 0.0;
+      float wantedFrequency = 0;
+      while (manualcheck == false)
+      {
+        memset(receivedChars, 0, sizeof(receivedChars));
+        boolean newData = false;
+        Serial.flush();
+        while (Serial.available() > 0 && newData == false)
+        {
+          char rc = Serial.read();
+          if (rc != endMarker)
+          {
+            receivedChars[ndx] = rc;
+            ndx++;
+            if (ndx >= 32)
+            {
+              ndx = 32 - 1;
+            }
+          }
+          else
+          {
+            receivedChars[ndx] = '\0';
+            ndx = 0;
+            newData = true;
+          }
+        }
+        if ((receivedChars[0] >= '0' && receivedChars[0] <= '9'))
+        {
+          frequencyString = String(receivedChars);
+          tempFrequency = frequencyString.toFloat();
+          if (tempFrequency <= 100.0)
+          {
+            wantedFrequency = tempFrequency;
+            output = 255.0 * (wantedFrequency / 100.0);
+          }
+        }
+        analogWrite(PWMA, output);
+        float voltage = (INPUT_VOLTAGE * (wantedFrequency / 100.0));
+        String percentS = String(wantedFrequency, 2); // using a float and the decimal places
+        String voltageS = String(voltage, 2);
+        String frequencyS = String(currentFrequency, 2);
+        Serial.println("Current output: " + percentS + "%  (" + voltageS + "V) (" + currentFrequency + "Hz)");
+        if (receivedChars[0] != '\0' && (receivedChars[0] < '0' || receivedChars[0] > '9'))
+        {
+          manualcheck = true;
+          state = 0;
+          Serial.println();
+        }
+      }
     }
   }
   else if (state == 2)
