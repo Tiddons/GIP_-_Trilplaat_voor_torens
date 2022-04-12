@@ -39,7 +39,7 @@ void setup()
     {
     }
     String StringInput = Serial.readString();
-    INPUT_VOLTAGE = StringInput.toInt();
+    INPUT_VOLTAGE = StringInput.toFloat();
     String volts = String(INPUT_VOLTAGE, 1);
     Serial.println("\nInput is " + volts + "V\n");
     delay(200);
@@ -135,7 +135,7 @@ void loop()
       boolean manualcheck = false;
       boolean FirstcharCheck = false;
       byte ndx = 0;
-      int schakelaarEersteToestand = 0;
+      float schakelaarEersteToestand = 0.0;
       float percent = 0;
       while (manualcheck == false)
       {
@@ -168,14 +168,15 @@ void loop()
           if (tempPercent <= 100.0)
           {
             percent = tempPercent;
-            schakelaarEersteToestand = 1023.0 * (percent / 100.0);
+            schakelaarEersteToestand = 255.0 * (percent / 100.0);
           }
         }
-        analogWrite(PWMA, schakelaarEersteToestand / 4);
-        float voltage = (INPUT_VOLTAGE * ((float)percent / 100.0));
+        analogWrite(PWMA, schakelaarEersteToestand);
+        float voltage = (INPUT_VOLTAGE * (percent / 100.0));
         String percentS = String(percent, 2); // using a float and the decimal places
         String voltageS = String(voltage, 2);
-        Serial.println("Current output: " + percentS + "%  (" + voltageS + "V)");
+        String frequencyS = String(currentFrequency, 2);
+        Serial.println("Current output: " + percentS + "%  (" + voltageS + "V) (" + currentFrequency + "Hz)" );
         if (receivedChars[0] != '\0' && (receivedChars[0] < '0' || receivedChars[0] > '9'))
         {
           manualcheck = true;
@@ -184,7 +185,7 @@ void loop()
         }
       }
     }
-    else if (ManualState == false)
+    else if (ManualState == false) //TODO 
     { // Frequency controlled mode
       //still need to make this 
     }
@@ -353,10 +354,10 @@ void loop()
 
 void calculateFrequenty()
 {
-  Serial.println("state has been changed");
   count = millis();
   unsigned long difference = count - startRotation;
   currentFrequency = 1.0f / ((float)difference / 1000);
-  Serial.println(currentFrequency, 5);
+  // Serial.println("state has been changed");
+  // Serial.println(currentFrequency, 5);
   startRotation = millis();
 }
