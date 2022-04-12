@@ -53,7 +53,7 @@ void setup()
 void loop()
 {
 
-  if (state == 0) // __________________________________ Menu
+  if (state == 0) // ___________________ Menu
   {
     boolean modeCheck = false;
     while (modeCheck == false)
@@ -89,7 +89,7 @@ void loop()
     }
   }
 
-  else if (state == 1) // _________________________ Manual state
+  else if (state == 1) // ______________ Manual state
   {                      
     boolean ManualState; // True is Voltage, false is frequency based control
     boolean ManualModeCheck = false;
@@ -248,8 +248,9 @@ void loop()
       }
     }
   }
-  else if (state == 2)
-  { // _____________________ Testing mode
+
+  else if (state == 2) // ______________ Testing mode
+  { 
     Serial.println();
     boolean checkPrecision = false;
     while (checkPrecision == false)
