@@ -1,3 +1,5 @@
+#include <PID_v1.h>
+
 // configuration of variables
 int HALLSENSOR = 2;
 int PWMA = 3;
@@ -185,7 +187,7 @@ void loop()
         }
       }
     }
-    else if (ManualState == false) // Frequency controlled mode // TODO
+    else if (ManualState == false) // Frequency controlled mode // TODO testing
     {
       Serial.println();
       delay(1000);
@@ -199,6 +201,11 @@ void loop()
       float tempFrequency;
       float output = 0.0;
       float wantedFrequency = 0;
+      double Setpoint, Input, Output;
+
+      PID myPID(&Input, &Output, &Setpoint, 10, 10, 10, DIRECT);
+      myPID.SetSampleTime(50);
+
       while (manualcheck == false)
       {
         memset(receivedChars, 0, sizeof(receivedChars));
@@ -230,15 +237,19 @@ void loop()
           if (tempFrequency <= 100.0)
           {
             wantedFrequency = tempFrequency;
-            output = 255.0 * (wantedFrequency / 100.0);
           }
         }
-        analogWrite(PWMA, output);
-        float voltage = (INPUT_VOLTAGE * (wantedFrequency / 100.0));
-        String percentS = String(wantedFrequency, 2); // using a float and the decimal places
+        Setpoint = wantedFrequency;
+        Input = currentFrequency;
+        myPID.Compute();
+        analogWrite(PWMA, Output);
+        float percentage = (Output/255.0)*100;
+        float voltage = INPUT_VOLTAGE*(percentage/100);
+        String percentageS = String(percentage, 2);
+        String wantedFrequencyS = String(wantedFrequency, 2); // using a float and the decimal places
         String voltageS = String(voltage, 2);
-        String frequencyS = String(currentFrequency, 2);
-        Serial.println("Current output: " + percentS + "%  (" + voltageS + "V) (" + currentFrequency + "Hz)");
+        String currentFrequencyS = String(currentFrequency, 2);
+        Serial.println("Wanted frequency: " + wantedFrequencyS + "Hz (" + percentageS + "%) (" + voltageS + "V) (" + currentFrequencyS + "Hz)");
         if (receivedChars[0] != '\0' && (receivedChars[0] < '0' || receivedChars[0] > '9'))
         {
           manualcheck = true;
@@ -306,7 +317,7 @@ void loop()
     {
       Serial.flush();
       int charInput = Serial.read();
-      analogWrite(PWMA, 1023);
+      analogWrite(PWMA, 255);
       String countdown = String(i);
       Serial.println("Testing starts in: " + countdown + "       *Make sure the motor is spinning!*  [A]bort / [S]kip");
       if (charInput == 65)
@@ -324,7 +335,7 @@ void loop()
     Serial.println('\n');
     for (float i = PRECISION; i > 0; i--)
     {
-      float currentOutput = ((1023.0 / PRECISION) * i) / 4.011764;
+      float currentOutput = (255.0/ PRECISION) * i;
       analogWrite(PWMA, currentOutput);
       float percent = (currentOutput / 255.0) * 100.0;
       float voltage = (INPUT_VOLTAGE * ((float)percent / 100.0));
