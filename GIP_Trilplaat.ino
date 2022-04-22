@@ -92,7 +92,7 @@ void loop()
   }
 
   else if (state == 1) // ______________ Manual state
-  {                      
+  {
     boolean ManualState; // True is Voltage, false is frequency based control
     boolean ManualModeCheck = false;
     while (ManualModeCheck == false) // Decides wether to use serial or analog input
@@ -128,7 +128,7 @@ void loop()
       }
     }
     if (ManualState == true) // Voltage controlled mode
-    { 
+    {
       Serial.println();
       delay(1000);
       Serial.println("*You can stop the mode by sending any text*");
@@ -243,8 +243,8 @@ void loop()
         Input = currentFrequency;
         myPID.Compute();
         analogWrite(PWMA, Output);
-        float percentage = (Output/255.0)*100;
-        float voltage = INPUT_VOLTAGE*(percentage/100);
+        float percentage = (Output / 255.0) * 100;
+        float voltage = INPUT_VOLTAGE * (percentage / 100);
         String percentageS = String(percentage, 2);
         String wantedFrequencyS = String(wantedFrequency, 2); // using a float and the decimal places
         String voltageS = String(voltage, 2);
@@ -261,7 +261,7 @@ void loop()
   }
 
   else if (state == 2) // ______________ Testing mode
-  { 
+  {
     Serial.println();
     boolean checkPrecision = false;
     while (checkPrecision == false)
@@ -333,18 +333,27 @@ void loop()
       delay(1000);
     }
     Serial.println('\n');
-    for (float i = PRECISION; i > 0; i--)
+    for (float i = 0; i < PRECISION; i++)
     {
-      float currentOutput = (255.0/ PRECISION) * i;
+      unsigned long testingCount = millis();
+      unsigned long testingDifference;
+      float currentOutput = (255.0 / PRECISION) * i;
       analogWrite(PWMA, currentOutput);
       float percent = (currentOutput / 255.0) * 100.0;
       float voltage = (INPUT_VOLTAGE * ((float)percent / 100.0));
-      String percentS = String(percent, 2); // using a float and the decimal places
-      String voltageS = String(voltage, 2);
-      String totalTests = String((int)PRECISION);
-      String currentTest = String((int)PRECISION - (int)i + 1);
-      Serial.println("Currently testing with output: [" + percentS + "%]  (" + voltageS + "V)  " + currentTest + "/" + totalTests);
-      delay(TEST_DELAY);
+
+      do
+      { 
+        unsigned long testingCurrentCount = millis();
+        testingDifference = testingCount - testingCurrentCount;
+        String percentS = String(percent, 2); // using a float and the decimal places
+        String voltageS = String(voltage, 2);
+        String totalTests = String((int)PRECISION);
+        String currentTest = String((int)PRECISION - (int)i + 1);
+        String frequencyS = String(currentFrequency, 2);
+        Serial.println("Currently testing with output: [" + percentS + "%]  (" + voltageS + "V)  " + " (" + currentFrequency + "Hz)" + currentTest + "/" + totalTests);
+
+      } while (testingDifference < TEST_DELAY);
     }
     Serial.println("\n---------------------------------------------------------------------\n_TESTS DONE_\n");
     delay(200);
