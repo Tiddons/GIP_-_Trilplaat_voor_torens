@@ -393,7 +393,7 @@ void loop()
       ndx = 0;
       unsigned long testingCount = millis();
       unsigned long testingDifference = 0;
-      float currentOutput = (((((float)TEST_MAX - (float)TEST_MIN) / 100.0) * 255.0) / float(PRECISION -1)) * float(i-1) + ((float)TEST_MIN/100.0)*255.0 ;
+      float currentOutput = (((((float)TEST_MAX - (float)TEST_MIN) / 100.0) * 255.0) / float(PRECISION -1)) * float(i-1) + ((float)TEST_MIN/100.0)*255.0;
      // float currentOutput = ((TEST_MAX - TEST_MIN))
       analogWrite(PWMA, currentOutput);
       float percent = (currentOutput / 255.0) * 100.0;
