@@ -514,41 +514,8 @@ void loop()
   }
   else if (state == 3)
   {
-    Serial.println(F("--Trilplaat--\n--Technische scholen mechelen - 6IW 2021-2022--\n--Made by Tiddo Nees with lots of blood sweat and tears--\n--Made to control the trilplaat prototype, make sure all \n  cables are connected as shown on the diagram in the thesis--"));
-    Serial.println(F("Press any key to return to menu"));
-    boolean keyCheck = false;
-    while (keyCheck == false)
-    {
-      memset(receivedChars, 0, sizeof(receivedChars));
-      boolean newData = false;
-      byte ndx = 0;
-      Serial.flush();
-      while (Serial.available() > 0 && newData == false)
-      {
-        char rc = Serial.read();
-        if (rc != endMarker)
-        {
-          receivedChars[ndx] = rc;
-          ndx++;
-          if (ndx >= 32)
-          {
-            ndx = 32 - 1;
-          }
-        }
-        else
-        {
-          receivedChars[ndx] = '\0';
-          ndx = 0;
-          newData = true;
-        }
-      }
-      if (receivedChars[0] != '\0')
-      {
-        Serial.flush();
-        state = 0;
-        keyCheck = true;
-      }
-    }
+    Serial.println(F("--Trilplaat--\n--Technische scholen mechelen - 6IW 2021-2022--\n--Made by Tiddo Nees with lots of blood sweat and tears--\n--Made to control the trilplaat prototype, make sure all \n  cables are connected as shown on the diagram in the thesis--\n\n"));
+    state = 0;
   }
 }
 
