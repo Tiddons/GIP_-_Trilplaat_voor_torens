@@ -180,7 +180,7 @@ void loop()
         }
         analogWrite(PWMA, schakelaarEersteToestand);
         float voltage = (INPUT_VOLTAGE * (percent / 100.0));
-        Serial.print("Current output: " + String(percent, 2) + "%  (" + String(voltage, 2) + "V) (" + String(currentFrequency, 2) + "Hz)");
+        Serial.println("Current output: " + String(percent, 2) + "%  (" + String(voltage, 2) + "V) (" + String(currentFrequency, 2) + "Hz)");
         if (receivedChars[0] != '\0' && (receivedChars[0] < '0' || receivedChars[0] > '9'))
         {
           manualcheck = true;
@@ -315,7 +315,7 @@ void loop()
         checkMax = true;
       }
     }
-    Serial.print(("Maximum percentage set to: " + String(TEST_MAX, 0) + "% or " + String(INPUT_VOLTAGE * (TEST_MAX / 100.0)) + "V\n\n\n"));
+    Serial.print(("Maximum percentage set to: " + String(TEST_MAX, 1) + "% or " + String(INPUT_VOLTAGE * (TEST_MAX / 100.0)) + "V\n\n\n"));
     while (checkPrecision == false)
     {
       Serial.flush();
@@ -357,7 +357,7 @@ void loop()
     }
     Serial.println("Amount of time in between tests set to " + String(TEST_DELAY) + "ms\n\n\n");
     String amountOfTests = String(PRECISION);
-    delay(1500);
+    delay(1000);
     Serial.println("Precision has been succesfully set to " + amountOfTests + " tests\n");
     delay(500);
     String amountOfMinutes = String(float(PRECISION * TEST_DELAY) / 60000.0f, 2);
@@ -393,8 +393,8 @@ void loop()
       ndx = 0;
       unsigned long testingCount = millis();
       unsigned long testingDifference = 0;
-      float currentOutput = (((((float)TEST_MAX - (float)TEST_MIN) / 100.0) * 255.0) / float(PRECISION -1)) * float(i-1) + ((float)TEST_MIN/100.0)*255.0;
-     // float currentOutput = ((TEST_MAX - TEST_MIN))
+      float currentOutput = (((((float)TEST_MAX - (float)TEST_MIN) / 100.0) * 255.0) / float(PRECISION - 1)) * float(i - 1) + ((float)TEST_MIN / 100.0) * 255.0;
+      // float currentOutput = ((TEST_MAX - TEST_MIN))
       analogWrite(PWMA, currentOutput);
       float percent = (currentOutput / 255.0) * 100.0;
       float voltage = (INPUT_VOLTAGE * ((float)percent / 100.0));
@@ -465,7 +465,7 @@ void loop()
           {
             Serial.read();
           } while (Serial.available());
-          Serial.print(F("Do you want to enter [1] Manual mode or [2] Exit?"));
+          Serial.print(F("Do you want to enter [1] Menu or [2] Exit?"));
           delay(100);
           Serial.flush();
           while (Serial.available() == 0)
@@ -484,11 +484,12 @@ void loop()
           }
           else if (StringInput2 == 49)
           {
-            Serial.println(F("\n_MANUAL MODE ENABLED_"));
             StringInput = 0;
-            state = 1;
+            state = 0;
             switchMode = true;
             TestAgainCheck = true;
+            Serial.println(F("\nEntering menu: \n\n"));
+
           }
           else
           {
@@ -527,37 +528,38 @@ void calculateFrequenty()
   startRotation = millis();
 }
 
-float checkPrompt (String a){
+float checkPrompt(String a)
+{
   boolean inputCheck = false;
-    while (inputCheck == false)
+  while (inputCheck == false)
+  {
+    memset(receivedChars, 0, sizeof(receivedChars));
+    boolean newData = false;
+    byte ndx = 0;
+    Serial.flush();
+    while (Serial.available() > 0 && newData == false)
     {
-      memset(receivedChars, 0, sizeof(receivedChars));
-      boolean newData = false;
-      byte ndx = 0;
-      Serial.flush();
-      while (Serial.available() > 0 && newData == false)
+      char rc = Serial.read();
+      if (rc != endMarker)
       {
-        char rc = Serial.read();
-        if (rc != endMarker)
+        receivedChars[ndx] = rc;
+        ndx++;
+        if (ndx >= 32)
         {
-          receivedChars[ndx] = rc;
-          ndx++;
-          if (ndx >= 32)
-          {
-            ndx = 32 - 1;
-          }
-        }
-        else
-        {
-          receivedChars[ndx] = '\0';
-          ndx = 0;
-          newData = true;
+          ndx = 32 - 1;
         }
       }
-      if (receivedChars[0] != '\0')
+      else
       {
-        state = 0;
-        inputCheck = true;
+        receivedChars[ndx] = '\0';
+        ndx = 0;
+        newData = true;
       }
     }
+    if (receivedChars[0] != '\0')
+    {
+      state = 0;
+      inputCheck = true;
+    }
+  }
 }
