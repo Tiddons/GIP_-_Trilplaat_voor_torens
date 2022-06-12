@@ -27,7 +27,7 @@ void setup()
   for (int i = 0; i < 20; i++)
     Serial.println(F(""));
   delay(2000);
-  Serial.println(F("--Trilplaat V0.6-- GIP 6IW 2021-2022"));
+  Serial.println(F("--Trilplaat V1.0-- GIP 6IW 2021-2022"));
   delay(2000);
   boolean VoltCheck = false;
   while (VoltCheck == false)
@@ -489,7 +489,6 @@ void loop()
             switchMode = true;
             TestAgainCheck = true;
             Serial.println(F("\nEntering menu: \n\n"));
-
           }
           else
           {
