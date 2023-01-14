@@ -514,7 +514,7 @@ void loop()
   }
   else if (state == 3)
   {
-    Serial.println(F("--Trilplaat--\n--Technische scholen mechelen - 6IW 2021-2022--\n--Made by Tiddo Nees with lots of blood sweat and tears--\n--Made to control the trilplaat prototype, make sure all \n  cables are connected as shown on the diagram in the thesis--\n\n"));
+    Serial.println(F("--Trilplaat--\n--Technische scholen mechelen - 6IW 2021-2022--\n--Made by Tiddo N. with lots of blood sweat and tears--\n--Made to control the trilplaat prototype, make sure all \n  cables are connected as shown on the diagram in the thesis--\n\n"));
     state = 0;
   }
 }
